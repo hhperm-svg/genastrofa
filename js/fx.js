@@ -1,5 +1,6 @@
 /* ГЕНАСТРОФА — система визуальных эффектов, частиц, затопления и купола защиты */
 (function () {
+  const GN = window.GN = window.GN || {};
   const T = GN.Tex;
 
   class FXManager {

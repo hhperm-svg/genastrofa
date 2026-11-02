@@ -1,5 +1,6 @@
 /* ГЕНАСТРОФА — составные 3D-модели квартиры, мебели, робота и датчиков */
 (function () {
+  const GN = window.GN = window.GN || {};
   const T = GN.Tex;
   const V3 = THREE.Vector3;
   const M = {};

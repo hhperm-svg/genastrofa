@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bgMusic" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7209b7" />
+      <stop offset="100%" stop-color="#3a0ca3" />
+    </linearGradient>
+    <filter id="shadowM" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <circle cx="60" cy="60" r="54" fill="url(#bgMusic)" filter="url(#shadowM)"/>
+  <circle cx="60" cy="60" r="48" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.4" stroke-dasharray="4 3"/>
+  <!-- Sound Waves (Acoustic Rings) -->
+  <path d="M18 42 C12 52 12 68 18 78" stroke="#4cc9f0" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M12 34 C4 50 4 70 12 86" stroke="#4cc9f0" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M102 42 C108 52 108 68 102 78" stroke="#4cc9f0" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M108 34 C116 50 116 70 108 86" stroke="#4cc9f0" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <!-- Musical Notes -->
+  <g fill="#ffd166" opacity="0.9">
+    <path d="M38 24 L48 20 L48 32 A4 4 0 1 1 44 28 L44 23 L38 25 Z"/>
+    <path d="M84 22 L92 18 L92 28 A3.5 3.5 0 1 1 88 25 L88 21 L84 23 Z"/>
+  </g>
+  <!-- Boombox body -->
+  <g transform="translate(24, 40)">
+    <!-- Handle -->
+    <path d="M18 10 L18 2 C18 0 54 0 54 2 L54 10" fill="none" stroke="#17191C" stroke-width="3" stroke-linecap="round"/>
+    <!-- Main Box -->
+    <rect x="0" y="8" width="72" height="42" rx="6" fill="#f4f1ea" stroke="#17191C" stroke-width="2.5"/>
+    <!-- Accent line -->
+    <rect x="2" y="10" width="68" height="6" fill="#f72585"/>
+    <!-- Left Speaker -->
+    <circle cx="18" cy="30" r="12" fill="#17191C"/>
+    <circle cx="18" cy="30" r="9" fill="#4361ee"/>
+    <circle cx="18" cy="30" r="4" fill="#f72585"/>
+    <!-- Right Speaker -->
+    <circle cx="54" cy="30" r="12" fill="#17191C"/>
+    <circle cx="54" cy="30" r="9" fill="#4361ee"/>
+    <circle cx="54" cy="30" r="4" fill="#f72585"/>
+    <!-- Cassette Door in center -->
+    <rect x="31" y="22" width="10" height="16" rx="2" fill="#2b2d42" stroke="#17191C" stroke-width="1.5"/>
+    <circle cx="34" cy="28" r="1.5" fill="#ffffff"/>
+    <circle cx="38" cy="28" r="1.5" fill="#ffffff"/>
+    <!-- Radio antenna -->
+    <line x1="8" y1="8" x2="2" y2="-6" stroke="#17191C" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="2" cy="-6" r="2" fill="#f72585"/>
+  </g>
+</svg>

@@ -1,5 +1,7 @@
 /* ГЕНАСТРОФА — HUD, Canvas 2D радар-миникарта, чеки катастрофы и калькулятор */
 (function () {
+  const GN = window.GN = window.GN || {};
+
   class UIManager {
     constructor(game) {
       this.game = game;
@@ -188,7 +190,7 @@
 
       // Фон миникарты
       ctx.fillStyle = 'rgba(23, 25, 28, 0.85)';
-      ctx.roundRect(0, 0, w, h, 8);
+      GN.Tex.roundRect(ctx, 0, 0, w, h, 8);
       ctx.fill();
 
       // Масштабирование: квартира 17м x 12м -> w x h
@@ -277,6 +279,7 @@
 
       if (toggle) {
         toggle.addEventListener('change', () => {
+          const stamp = document.getElementById('stamp-alfa-paid');
           if (toggle.checked) {
             // Включение страховки: перечеркивание суммы в 0 ₽
             totalAmountDisplay.innerHTML = `
@@ -285,11 +288,19 @@
             `;
             promoBlock.classList.remove('hidden');
             policyBanner.classList.remove('hidden');
+            if (stamp) {
+              stamp.classList.remove('hidden');
+              stamp.classList.add('stamp-slam');
+            }
             GN.sound.playCashChime();
           } else {
             totalAmountDisplay.textContent = `${this.game.damage.toLocaleString('ru-RU')} ₽`;
             promoBlock.classList.add('hidden');
             policyBanner.classList.add('hidden');
+            if (stamp) {
+              stamp.classList.add('hidden');
+              stamp.classList.remove('stamp-slam');
+            }
           }
         });
       }

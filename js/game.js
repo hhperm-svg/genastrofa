@@ -1,5 +1,6 @@
 /* ГЕНАСТРОФА — Главное игровое ядро, физика, AI противника, комбо и квесты */
 (function () {
+  const GN = window.GN = window.GN || {};
   const M = GN.M;
   const V3 = THREE.Vector3;
 
@@ -153,15 +154,15 @@
         };
 
         // Добавляем коллайдер мебели
-        if (s.size[0] > 0.2) {
-          const hw = s.size[0] / 2;
-          const hd = s.size[1] / 2;
+        if (built.size && built.size[0] > 0.2) {
+          const hw = built.size[0] / 2;
+          const hd = built.size[1] / 2;
           this.colliders.push({
             x0: s.pos[0] - hw,
             x1: s.pos[0] + hw,
             z0: s.pos[2] - hd,
             z1: s.pos[2] + hd,
-            top: s.size[2]
+            top: built.size[2]
           });
         }
 

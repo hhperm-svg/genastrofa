@@ -31,38 +31,42 @@
        ========================================================================== -->
   <div id="hero-overlay">
     <div class="hero-modal">
-      <div class="cobrand-badge">
-        <span class="alfa-dot"></span>
-        <span>АльфаСтрахование × Спецпроект «ГЕНАСТРОФА»</span>
+      <!-- Иллюстрированный заглавный баннер игры -->
+      <div class="hero-art-banner">
+        <img src="assets/hero-banner.svg" alt="ГЕНАСТРОФА: Симулятор соседа сверху" class="hero-banner-img">
       </div>
 
-      <h1 class="hero-title">
-        СИМУЛЯТОР СОСЕДА СВЕРХУ: <span>ГЕНАСТРОФА</span>
-      </h1>
-
-      <p class="hero-desc">
-        Вам отведено 60 секунд чистого куража! Берите в руки легендарный перфоратор «Макита-Ультра», газовый ключ и проверьте на прочность свежий дизайнерский ремонт в квартире. Но помните: там, где есть полис «АльфаСтрахования», любой ущерб превращается в 0 рублей.
-      </p>
-
-      <div class="class-picker-title">Выберите класс Геннадия:</div>
+      <div class="class-picker-title">Выберите экипировку Геннадия:</div>
 
       <div class="class-cards-grid">
         <div class="class-card selected" data-class="drill">
-          <div class="class-icon">⚡️</div>
-          <div class="class-name">Мастер Перфоратора</div>
-          <div class="class-perk">+50% к скорости разрушения стен, труб и мебели буром и гирей.</div>
+          <div class="class-badge-img">
+            <img src="assets/icon-drill.svg" alt="Мастер Перфоратора" width="56" height="56">
+          </div>
+          <div class="class-info">
+            <div class="class-name">Мастер Перфоратора</div>
+            <div class="class-perk">+50% к урону буром и гирей 24 кг. Бурит несущие стены за секунды.</div>
+          </div>
         </div>
 
         <div class="class-card" data-class="aqua">
-          <div class="class-icon">🌊</div>
-          <div class="class-name">Аква-Террорист</div>
-          <div class="class-perk">x2 скорость затопления квартиры и комбо-урон от замыкания в воде.</div>
+          <div class="class-badge-img">
+            <img src="assets/icon-aqua.svg" alt="Аква-Террорист" width="56" height="56">
+          </div>
+          <div class="class-info">
+            <div class="class-name">Аква-Террорист</div>
+            <div class="class-perk">x2 скорость затопления квартиры и двойной урон от цепного замыкания в воде.</div>
+          </div>
         </div>
 
         <div class="class-card" data-class="music">
-          <div class="class-icon">📻</div>
-          <div class="class-name">Ночной Меломан</div>
-          <div class="class-perk">-40% перезарядка звуковой волны (шансон по батарее) и спринта.</div>
+          <div class="class-badge-img">
+            <img src="assets/icon-music.svg" alt="Ночной Меломан" width="56" height="56">
+          </div>
+          <div class="class-info">
+            <div class="class-name">Ночной Меломан</div>
+            <div class="class-perk">-40% перезарядка звуковой волны (шансон по батарее) и спринта.</div>
+          </div>
         </div>
       </div>
 
@@ -199,9 +203,10 @@
         <!-- Список повреждений -->
       </div>
 
-      <div class="receipt-total-box">
+      <div class="receipt-total-box" style="position:relative;">
         <span class="total-title">ИТОГО К ВОЗМЕЩЕНИЮ УЩЕРБА:</span>
         <div id="receipt-total-amount" class="total-number-display">1 680 000 ₽</div>
+        <img id="stamp-alfa-paid" src="assets/alfa-stamp.svg" alt="Покрыто страховкой" class="alfa-stamp-overlay hidden">
       </div>
 
       <!-- Главный UX-триггер: интерактивный переключатель полиса АльфаСтрахования -->
@@ -228,6 +233,48 @@
       <a href="https://www.alfastrah.ru/individuals/housing/flat/calculator/" target="_blank" rel="noopener noreferrer" class="btn-cta-alfa">
         Рассчитать свой полис за 2 минуты →
       </a>
+
+      <!-- Штрих-код кассового чека -->
+      <div class="receipt-barcode">
+        <svg viewBox="0 0 200 36" width="180" height="32">
+          <g fill="#17191C">
+            <rect x="0" y="0" width="3" height="32"/>
+            <rect x="5" y="0" width="1.5" height="32"/>
+            <rect x="8" y="0" width="4.5" height="32"/>
+            <rect x="15" y="0" width="1.5" height="32"/>
+            <rect x="19" y="0" width="3" height="32"/>
+            <rect x="24" y="0" width="6" height="32"/>
+            <rect x="32" y="0" width="1.5" height="32"/>
+            <rect x="36" y="0" width="3" height="32"/>
+            <rect x="41" y="0" width="4.5" height="32"/>
+            <rect x="48" y="0" width="1.5" height="32"/>
+            <rect x="53" y="0" width="4.5" height="32"/>
+            <rect x="61" y="0" width="3" height="32"/>
+            <rect x="67" y="0" width="1.5" height="32"/>
+            <rect x="71" y="0" width="6" height="32"/>
+            <rect x="80" y="0" width="3" height="32"/>
+            <rect x="86" y="0" width="4.5" height="32"/>
+            <rect x="94" y="0" width="1.5" height="32"/>
+            <rect x="98" y="0" width="3" height="32"/>
+            <rect x="104" y="0" width="6" height="32"/>
+            <rect x="113" y="0" width="1.5" height="32"/>
+            <rect x="117" y="0" width="4.5" height="32"/>
+            <rect x="125" y="0" width="3" height="32"/>
+            <rect x="131" y="0" width="1.5" height="32"/>
+            <rect x="135" y="0" width="4.5" height="32"/>
+            <rect x="143" y="0" width="3" height="32"/>
+            <rect x="149" y="0" width="1.5" height="32"/>
+            <rect x="153" y="0" width="4.5" height="32"/>
+            <rect x="161" y="0" width="3" height="32"/>
+            <rect x="167" y="0" width="1.5" height="32"/>
+            <rect x="171" y="0" width="6" height="32"/>
+            <rect x="180" y="0" width="3" height="32"/>
+            <rect x="186" y="0" width="4.5" height="32"/>
+            <rect x="194" y="0" width="2" height="32"/>
+          </g>
+        </svg>
+        <div style="font-size:10px;color:#888888;letter-spacing:3px;font-family:monospace;margin-top:2px;">ALFA-CLAIM-2026-GENA</div>
+      </div>
 
       <button id="btn-restart" class="btn-restart">↻ Попробовать ещё раз (сыграть заново)</button>
     </div>
@@ -310,11 +357,24 @@
 
   <!-- Инициализация игры -->
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const game = new GN.Game();
-      const ui = new GN.UIManager(game);
-      window.GN.UI = ui;
-    });
+    function initGenastrofa() {
+      if (window._genastrofa_initialized) return;
+      window._genastrofa_initialized = true;
+      try {
+        const game = new window.GN.Game();
+        const ui = new window.GN.UIManager(game);
+        window.GN.UI = ui;
+        console.log('ГЕНАСТРОФА успешно инициализирована!');
+      } catch (err) {
+        console.error('Ошибка инициализации игры:', err);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initGenastrofa);
+    } else {
+      initGenastrofa();
+    }
   </script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 /* ГЕНАСТРОФА — 3D-персонаж «Сосед Геннадий» и процедурные анимации */
 (function () {
+  const GN = window.GN = window.GN || {};
   const T = GN.Tex;
   const M = GN.M;
 
@@ -278,7 +279,7 @@
       g.lineWidth = 6;
 
       g.beginPath();
-      g.roundRect(10, 10, 492, 140, 24);
+      T.roundRect(g, 10, 10, 492, 140, 24);
       g.fill();
       g.stroke();
 

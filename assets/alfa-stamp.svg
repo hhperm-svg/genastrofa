@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <path id="circleTextTop" d="M 30,120 A 90,90 0 0,1 210,120" fill="none" />
+    <path id="circleTextBot" d="M 210,120 A 90,90 0 0,1 30,120" fill="none" />
+  </defs>
+  <!-- Outer double grunge border -->
+  <circle cx="120" cy="120" r="110" fill="none" stroke="#EF3124" stroke-width="4.5" stroke-dasharray="14 3 6 4" opacity="0.95"/>
+  <circle cx="120" cy="120" r="102" fill="none" stroke="#EF3124" stroke-width="2" opacity="0.85"/>
+  <circle cx="120" cy="120" r="74" fill="none" stroke="#EF3124" stroke-width="2.5" stroke-dasharray="10 4"/>
+
+  <!-- Curved Text Top -->
+  <text fill="#EF3124" font-family="'Unbounded', 'Impact', sans-serif" font-weight="900" font-size="13" letter-spacing="3.5">
+    <textPath href="#circleTextTop" startOffset="50%" text-anchor="middle">
+      ПОКРЫТО СТРАХОВКОЙ
+    </textPath>
+  </text>
+
+  <!-- Curved Text Bottom -->
+  <text fill="#EF3124" font-family="'Unbounded', 'Impact', sans-serif" font-weight="900" font-size="13" letter-spacing="4">
+    <textPath href="#circleTextBot" startOffset="50%" text-anchor="middle">
+      АЛЬФАСТРАХОВАНИЕ
+    </textPath>
+  </text>
+
+  <!-- Stars -->
+  <path d="M 28,120 L 32,116 L 36,120 L 32,124 Z" fill="#EF3124"/>
+  <path d="M 204,120 L 208,116 L 212,120 L 208,124 Z" fill="#EF3124"/>
+
+  <!-- Center bold text 0 ₽ -->
+  <text x="120" y="112" text-anchor="middle" fill="#EF3124" font-family="'Unbounded', 'Impact', sans-serif" font-weight="900" font-size="44" letter-spacing="1">
+    0 ₽
+  </text>
+  <text x="120" y="138" text-anchor="middle" fill="#EF3124" font-family="'Manrope', sans-serif" font-weight="800" font-size="11" letter-spacing="1">
+    К ОПЛАТЕ СОСЕДОМ
+  </text>
+  <line x1="55" y1="146" x2="185" y2="146" stroke="#EF3124" stroke-width="2.5"/>
+</svg>
