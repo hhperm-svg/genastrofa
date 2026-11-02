@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ГЕНАСТРОФА: Симулятор соседа сверху | АльфаСтрахование</title>
+  
+  <!-- Шрифты Google Fonts: Unbounded & Manrope -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Unbounded:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Стили дизайн-системы -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- Контейнер для Three.js 3D-диорамы -->
+  <div id="canvas-container"></div>
+
+  <!-- Нотификация срабатывания датчика АльфаСтрахование -->
+  <div id="shield-alert" class="hidden">
+    🛡 СТРАХОВКА СРАБОТАЛА: 0 ₽ УЩЕРБА!
+  </div>
+
+  <!-- ==========================================================================
+       ЭКРАН 1: ПРИВЕТСТВЕННЫЙ ЭКРАН (HERO OVERLAY)
+       ========================================================================== -->
+  <div id="hero-overlay">
+    <div class="hero-modal">
+      <div class="cobrand-badge">
+        <span class="alfa-dot"></span>
+        <span>АльфаСтрахование × Спецпроект «ГЕНАСТРОФА»</span>
+      </div>
+
+      <h1 class="hero-title">
+        СИМУЛЯТОР СОСЕДА СВЕРХУ: <span>ГЕНАСТРОФА</span>
+      </h1>
+
+      <p class="hero-desc">
+        Вам отведено 60 секунд чистого куража! Берите в руки легендарный перфоратор «Макита-Ультра», газовый ключ и проверьте на прочность свежий дизайнерский ремонт в квартире. Но помните: там, где есть полис «АльфаСтрахования», любой ущерб превращается в 0 рублей.
+      </p>
+
+      <div class="class-picker-title">Выберите класс Геннадия:</div>
+
+      <div class="class-cards-grid">
+        <div class="class-card selected" data-class="drill">
+          <div class="class-icon">⚡️</div>
+          <div class="class-name">Мастер Перфоратора</div>
+          <div class="class-perk">+50% к скорости разрушения стен, труб и мебели буром и гирей.</div>
+        </div>
+
+        <div class="class-card" data-class="aqua">
+          <div class="class-icon">🌊</div>
+          <div class="class-name">Аква-Террорист</div>
+          <div class="class-perk">x2 скорость затопления квартиры и комбо-урон от замыкания в воде.</div>
+        </div>
+
+        <div class="class-card" data-class="music">
+          <div class="class-icon">📻</div>
+          <div class="class-name">Ночной Меломан</div>
+          <div class="class-perk">-40% перезарядка звуковой волны (шансон по батарее) и спринта.</div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button id="btn-start-game" class="btn-primary">НАЧАТЬ КАПРЕМОНТ (60 СЕК) →</button>
+        <a href="#landing-page" class="btn-secondary">Калькулятор полиса ↓</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ЭКРАН 2: ИГРОВОЙ HUD (КОТАСТРОФА STYLE)
+       ========================================================================== -->
+  <div id="hud" class="hidden">
+    <!-- Верхний левый угол -->
+    <div class="hud-top-left">
+      <div class="logo-badge">
+        <div class="alfa-symbol">А</div>
+        <div class="title-wrap">
+          <span class="title-main">ГЕНАСТРОФА</span>
+          <span class="title-sub">АльфаСтрахование</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Верхний центр: Слегка наклонённая карточка ущерба и таймера -->
+    <div class="hud-top-center">
+      <div class="damage-card">
+        <div class="damage-metric">
+          <span class="metric-label">МАТЕРИАЛЬНЫЙ УЩЕРБ:</span>
+          <div class="metric-value-wrap">
+            <span id="damage-val" class="metric-damage">0 ₽</span>
+            <span class="multiplier-pill"><span id="multiplier-val">x1.0</span></span>
+          </div>
+        </div>
+
+        <div class="timer-metric">
+          <span class="metric-label">ДО ПРИЕЗДА ХОЗЯЕВ:</span>
+          <span id="timer-val" class="metric-timer">01:00</span>
+          <span id="water-val" class="water-subtext">Вода: 0 см (0%)</span>
+        </div>
+      </div>
+      <div id="situation-text" class="situation-bar">
+        Перфоратор заряжен. Ищите скрытую проводку или итальянский кафель
+      </div>
+    </div>
+
+    <!-- Правый верхний угол: Управление -->
+    <div class="hud-top-right">
+      <button id="btn-mute" class="hud-btn" title="Звук">♪</button>
+      <button id="btn-early-finish" class="hud-btn text-btn">🧾 Выставить счёт</button>
+    </div>
+
+    <!-- Левая панель: карточка побочной диверсии -->
+    <div class="hud-left-panel">
+      <div class="quest-card">
+        <div class="quest-header">
+          <span class="quest-tag">ПОБОЧНАЯ ДИВЕРСИЯ</span>
+          <span id="quest-reward" class="quest-reward">+90 000 ₽</span>
+        </div>
+        <div id="quest-title" class="quest-title">Диверсия №1: «Венеция в хрущёвке»</div>
+        <ul id="quest-steps" class="quest-steps">
+          <!-- Генерируется из JS -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- Правый нижний угол: 2D Радар-миникарта -->
+    <div class="hud-bottom-right">
+      <div class="radar-wrap">
+        <div class="radar-header">
+          <span>ТЕРРИТОРИЯ ГЕННАДИЯ</span>
+          <span style="color:#4be3ff;">● LIVE</span>
+        </div>
+        <canvas id="radar-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Нижний центр: Док-панель клавиш и кулдаунов -->
+    <div class="hud-bottom-center">
+      <div class="control-keys-dock">
+        <div class="key-box">
+          <span class="key-letter">WASD</span>
+          <span class="key-desc">Бег</span>
+        </div>
+        <div class="key-box">
+          <span class="key-letter">SHIFT</span>
+          <span class="key-desc">Рывок</span>
+        </div>
+        <div class="key-box">
+          <span class="key-letter">SPACE</span>
+          <span class="key-desc">Прыжок</span>
+        </div>
+        <div class="key-box">
+          <span class="key-letter">E</span>
+          <span class="key-desc">Ключ</span>
+          <div id="cd-wrench" class="key-cd-fill"></div>
+        </div>
+        <div class="key-box">
+          <span class="key-letter">Q</span>
+          <span class="key-desc">Бур</span>
+        </div>
+        <div class="key-box">
+          <span class="key-letter">F</span>
+          <span class="key-desc">Гиря 24кг</span>
+          <div id="cd-weight" class="key-cd-fill"></div>
+        </div>
+        <div class="key-box">
+          <span class="key-letter">R</span>
+          <span class="key-desc">Шансон</span>
+          <div id="cd-music" class="key-cd-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ЭКРАН 3: ФИНАЛЬНЫЙ КАССОВЫЙ ЧЕК КАТАСТРОФЫ
+       ========================================================================== -->
+  <div id="receipt-modal" class="hidden">
+    <div class="receipt-sheet">
+      <div class="receipt-header">
+        <div class="receipt-logo">АЛЬФАСТРАХОВАНИЕ</div>
+        <div class="receipt-sub">АКТ ОЦЕНКИ МАТЕРИАЛЬНОГО УЩЕРБА</div>
+        <div style="font-size:11px;color:#888;margin-top:2px;">КВАРТИРА №48 · СЕРИЯ ДОМА П-44Т</div>
+      </div>
+
+      <div class="receipt-rank-box">
+        Квалификация разрушителя: <br>
+        <strong id="receipt-rank" style="color:var(--alfa-red);font-size:15px;">Заслуженный шабашник района</strong>
+      </div>
+
+      <div id="receipt-items-list" class="receipt-items-container">
+        <!-- Список повреждений -->
+      </div>
+
+      <div class="receipt-total-box">
+        <span class="total-title">ИТОГО К ВОЗМЕЩЕНИЮ УЩЕРБА:</span>
+        <div id="receipt-total-amount" class="total-number-display">1 680 000 ₽</div>
+      </div>
+
+      <!-- Главный UX-триггер: интерактивный переключатель полиса АльфаСтрахования -->
+      <div class="alfa-switch-card">
+        <div class="switch-label-wrap">
+          <span class="switch-title">У меня есть полис «АльфаСтрахование»</span>
+          <span class="switch-hint">Включите, чтобы активировать страховое покрытие</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="alfa-policy-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div id="policy-banner" class="policy-banner hidden">
+        🛡 <strong>Страховая выплата АльфаСтрахования покроет ремонт</strong>, бытовую технику и гражданскую ответственность перед соседями снизу. Стоимость спокойствия — всего от 350 ₽ в месяц!
+      </div>
+
+      <div id="promo-block" class="promo-block hidden">
+        <div class="promo-code-pill">GENA15 (-15%)</div>
+        <button id="btn-copy-promo" class="btn-copy">СКОПИРОВАТЬ</button>
+      </div>
+
+      <a href="https://www.alfastrah.ru/individuals/housing/flat/calculator/" target="_blank" rel="noopener noreferrer" class="btn-cta-alfa">
+        Рассчитать свой полис за 2 минуты →
+      </a>
+
+      <button id="btn-restart" class="btn-restart">↻ Попробовать ещё раз (сыграть заново)</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ЭКРАН 4: ВСТРОЕННЫЙ ПРЕ-КАЛЬКУЛЯТОР НА ЛЕНДИНГЕ
+       ========================================================================== -->
+  <div id="landing-page">
+    <div class="landing-container">
+      <div class="calc-section">
+        <div class="calc-info">
+          <div class="cobrand-badge">
+            <span class="alfa-dot"></span>
+            <span>Защита от реальных Геннадиев</span>
+          </div>
+          <h2>Защитите квартиру от <span>соседей сверху</span></h2>
+          <p>
+            В игре Геннадий разносит технику и топит соседей ради веселья, но в реальной жизни авария стояка или забытый кран обходятся в сотни тысяч рублей. Полис страхования квартиры от «АльфаСтрахования» компенсирует отделку, мебель и защитит перед жильцами снизу.
+          </p>
+          <div style="margin-top:24px;display:flex;gap:16px;">
+            <div style="background:#ffffff;padding:16px;border-radius:16px;flex:1;border:1px solid var(--alfa-border);">
+              <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--alfa-red);">350 ₽/мес</div>
+              <div style="font-size:12px;color:#727982;margin-top:4px;">Базовая цена полиса</div>
+            </div>
+            <div style="background:#ffffff;padding:16px;border-radius:16px;flex:1;border:1px solid var(--alfa-border);">
+              <div style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--alfa-black);">до 5 млн ₽</div>
+              <div style="font-size:12px;color:#727982;margin-top:4px;">Лимит выплат ущерба</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="calc-card-ui">
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <span>Отделка и ремонт</span>
+              <span id="calc-val-repair" class="slider-val">500 тыс. ₽</span>
+            </div>
+            <input type="range" id="calc-slider-repair" min="100000" max="2500000" step="50000" value="500000">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <span>Движимое имущество и техника</span>
+              <span id="calc-val-stuff" class="slider-val">300 тыс. ₽</span>
+            </div>
+            <input type="range" id="calc-slider-stuff" min="100000" max="2000000" step="50000" value="300000">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <span>Ответственность перед соседями</span>
+              <span id="calc-val-liability" class="slider-val">400 тыс. ₽</span>
+            </div>
+            <input type="range" id="calc-slider-liability" min="100000" max="1500000" step="50000" value="400000">
+          </div>
+
+          <div class="calc-result-box">
+            <div>
+              <div style="font-size:12px;color:#727982;font-weight:700;">ПРИМЕРНАЯ СТОИМОСТЬ:</div>
+              <div id="calc-price-monthly" class="calc-result-price">560 ₽ / мес</div>
+            </div>
+            <a href="https://www.alfastrah.ru/individuals/housing/flat/calculator/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding:14px 24px;font-size:14px;">
+              Оформить онлайн →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Подключение модулей игры -->
+  <script src="js/textures.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/character.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+
+  <!-- Инициализация игры -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const game = new GN.Game();
+      const ui = new GN.UIManager(game);
+      window.GN.UI = ui;
+    });
+  </script>
+</body>
+</html>
