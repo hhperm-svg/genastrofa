@@ -1,4 +1,4 @@
-/* ГЕНАСТРОФА — HUD, Canvas 2D радар-миникарта, чеки катастрофы и калькулятор */
+/* ГЕНАСТРОФА — Интерфейс, выбор сценариев, комикс-брифинги, 3D-промпты и чек */
 (function () {
   const GN = window.GN = window.GN || {};
 
@@ -8,9 +8,14 @@
 
       // Элементы интерфейса
       this.heroOverlay = document.getElementById('hero-overlay');
+      this.briefingModal = document.getElementById('briefing-modal');
       this.hud = document.getElementById('hud');
       this.receiptModal = document.getElementById('receipt-modal');
       this.shieldAlert = document.getElementById('shield-alert');
+      this.proximityPrompt = document.getElementById('proximity-prompt');
+      this.drillProgressWrap = document.getElementById('drill-progress-wrap');
+      this.drillProgressBar = document.getElementById('drill-progress-bar');
+
       this.radarCanvas = document.getElementById('radar-canvas');
       this.radarCtx = this.radarCanvas ? this.radarCanvas.getContext('2d') : null;
 
@@ -21,46 +26,59 @@
       this.waterVal = document.getElementById('water-val');
       this.situationText = document.getElementById('situation-text');
 
-      // Квесты
-      this.questTitle = document.getElementById('quest-title');
-      this.questSteps = document.getElementById('quest-steps');
-      this.questReward = document.getElementById('quest-reward');
+      // Квесты / Сценарии
+      this.scenarioTitle = document.getElementById('scenario-title');
+      this.scenarioBadge = document.getElementById('scenario-badge');
+      this.scenarioSteps = document.getElementById('scenario-steps');
+      this.scenarioTarget = document.getElementById('scenario-target');
 
-      // Док кулдаунов
+      // Кулдауны
       this.cdWrench = document.getElementById('cd-wrench');
       this.cdWeight = document.getElementById('cd-weight');
       this.cdMusic = document.getElementById('cd-music');
 
       this.displayedDamage = 0;
       this.targetDamage = 0;
+      this.selectedClass = 'drill';
 
-      this._initHeroScreen();
+      this._initMenuScreen();
+      this._initBriefing();
       this._initFinalModal();
       this._initCalculator();
       this._initMinimap();
     }
 
-    _initHeroScreen() {
-      const classCards = document.querySelectorAll('.class-card');
-      let selectedClass = 'drill';
+    _initMenuScreen() {
+      // Выбор сценариев
+      const scenarioCards = document.querySelectorAll('.scenario-select-card');
+      scenarioCards.forEach(card => {
+        card.addEventListener('click', () => {
+          scenarioCards.forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          const id = parseInt(card.getAttribute('data-scenario-id') || '1', 10);
+          this.game.selectScenario(id);
+        });
+      });
 
+      // Выбор классов
+      const classCards = document.querySelectorAll('.class-card');
       classCards.forEach(card => {
         card.addEventListener('click', () => {
           classCards.forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
-          selectedClass = card.getAttribute('data-class');
+          this.selectedClass = card.getAttribute('data-class');
         });
       });
 
-      const startBtn = document.getElementById('btn-start-game');
-      if (startBtn) {
-        startBtn.addEventListener('click', () => {
-          this.heroOverlay.classList.add('hidden');
-          this.hud.classList.remove('hidden');
-          this.game.start(selectedClass);
+      // Кнопка перехода к брифингу
+      const btnStart = document.getElementById('btn-start-game');
+      if (btnStart) {
+        btnStart.addEventListener('click', () => {
+          this.showBriefing();
         });
       }
 
+      // Звук
       const btnMute = document.getElementById('btn-mute');
       if (btnMute) {
         btnMute.addEventListener('click', () => {
@@ -70,16 +88,80 @@
         });
       }
 
+      // Досрочный финиш
       const btnEarlyFinish = document.getElementById('btn-early-finish');
       if (btnEarlyFinish) {
         btnEarlyFinish.addEventListener('click', () => {
-          this.game.finishGame();
+          this.game.finishGame(false);
         });
       }
     }
 
-    onGameStart() {
-      this.updateQuest(this.game.quests[0]);
+    showBriefing() {
+      const sc = this.game.scenarios.find(s => s.id === this.game.selectedScenarioId) || this.game.scenarios[0];
+      if (this.briefingModal) {
+        const titleEl = document.getElementById('briefing-title');
+        const badgeEl = document.getElementById('briefing-badge');
+        const textEl = document.getElementById('briefing-text');
+        const goalsEl = document.getElementById('briefing-goals');
+
+        if (titleEl) titleEl.textContent = sc.name;
+        if (badgeEl) badgeEl.textContent = sc.badge;
+        if (textEl) {
+          textEl.innerHTML = sc.briefing.map(p => `<p>${p}</p>`).join('');
+        }
+        if (goalsEl) {
+          goalsEl.innerHTML = sc.steps.map(s => `<li><span class="goal-bullet">●</span> ${s.desc}</li>`).join('');
+        }
+
+        this.heroOverlay.classList.add('hidden');
+        this.briefingModal.classList.remove('hidden');
+      } else {
+        this.launchGame();
+      }
+    }
+
+    _initBriefing() {
+      const btnLaunch = document.getElementById('btn-launch-scenario');
+      if (btnLaunch) {
+        btnLaunch.addEventListener('click', () => {
+          this.launchGame();
+        });
+      }
+    }
+
+    launchGame() {
+      if (this.briefingModal) this.briefingModal.classList.add('hidden');
+      if (this.heroOverlay) this.heroOverlay.classList.add('hidden');
+      if (this.hud) this.hud.classList.remove('hidden');
+
+      this.game.start(this.selectedClass);
+    }
+
+    onGameStart(scenario) {
+      this.displayedDamage = 0;
+      this.targetDamage = 0;
+      if (this.damageVal) this.damageVal.textContent = '0 ₽';
+      this.updateScenarioUI(scenario);
+    }
+
+    updateScenarioUI(sc) {
+      if (!this.scenarioTitle || !this.scenarioSteps) return;
+
+      this.scenarioTitle.textContent = sc.name;
+      if (this.scenarioBadge) this.scenarioBadge.textContent = sc.badge;
+      if (this.scenarioTarget) this.scenarioTarget.textContent = `Цель: от ${sc.targetDamage.toLocaleString('ru-RU')} ₽`;
+
+      this.scenarioSteps.innerHTML = '';
+      sc.steps.forEach(step => {
+        const li = document.createElement('li');
+        li.className = `quest-step-item ${step.done ? 'done' : ''}`;
+        li.innerHTML = `
+          <span class="step-check">${step.done ? '✓' : '○'}</span>
+          <span class="step-text">${step.desc}</span>
+        `;
+        this.scenarioSteps.appendChild(li);
+      });
     }
 
     updateDamage(targetTotal, addedAmount, multiplier, reason) {
@@ -90,16 +172,15 @@
         setTimeout(() => this.multiplierVal.parentElement.classList.remove('pulse'), 300);
       }
 
-      // Текстовый комментарий разрушения
       if (this.situationText && reason) {
         this.situationText.textContent = `+${addedAmount.toLocaleString('ru-RU')} ₽: ${reason}`;
       }
     }
 
     updateHUD(timeLeft, waterLevel, cds, maxCds) {
-      // Анимация наката цифр ущерба
+      // Анимация наката ущерба
       if (this.displayedDamage < this.targetDamage) {
-        this.displayedDamage += Math.ceil((this.targetDamage - this.displayedDamage) * 0.2);
+        this.displayedDamage += Math.ceil((this.targetDamage - this.displayedDamage) * 0.22);
         if (this.damageVal) {
           this.damageVal.textContent = `${this.displayedDamage.toLocaleString('ru-RU')} ₽`;
         }
@@ -112,16 +193,18 @@
         this.timerVal.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         if (timeLeft <= 10) {
           this.timerVal.classList.add('timer-danger');
+        } else {
+          this.timerVal.classList.remove('timer-danger');
         }
       }
 
-      // Уровень затопления
+      // Вода
       if (this.waterVal) {
-        const cm = Math.round((waterLevel / 100) * 45); // до 45 см
-        this.waterVal.textContent = `${cm} см (${Math.round(waterLevel)}%)`;
+        const cm = Math.round((waterLevel / 100) * 45);
+        this.waterVal.textContent = `Вода: ${cm} см (${Math.round(waterLevel)}%)`;
       }
 
-      // Кулдауны клавиш
+      // Кулдауны
       if (this.cdWrench && maxCds.wrench) {
         const pct = (cds.wrench / maxCds.wrench) * 100;
         this.cdWrench.style.height = `${pct}%`;
@@ -138,28 +221,39 @@
       this._drawRadar();
     }
 
-    updateQuest(quest) {
-      if (!this.questTitle || !this.questSteps) return;
-      this.questTitle.textContent = quest.title;
-      if (this.questReward) {
-        this.questReward.textContent = `+${quest.reward.toLocaleString('ru-RU')} ₽`;
-      }
+    show3DPrompt(screenX, screenY, key, text) {
+      if (!this.proximityPrompt) return;
+      this.proximityPrompt.style.left = `${screenX}px`;
+      this.proximityPrompt.style.top = `${screenY - 45}px`;
+      this.proximityPrompt.innerHTML = `
+        <span class="prompt-key">${key}</span>
+        <span class="prompt-text">${text}</span>
+      `;
+      this.proximityPrompt.classList.remove('hidden');
+    }
 
-      this.questSteps.innerHTML = '';
-      quest.steps.forEach(step => {
-        const li = document.createElement('li');
-        li.className = `quest-step-item ${step.done ? 'done' : ''}`;
-        li.innerHTML = `
-          <span class="step-check">${step.done ? '✓' : '○'}</span>
-          <span class="step-text">${step.desc}</span>
-        `;
-        this.questSteps.appendChild(li);
-      });
+    hide3DPrompt() {
+      if (this.proximityPrompt) {
+        this.proximityPrompt.classList.add('hidden');
+      }
+    }
+
+    showDrillProgress(pct) {
+      if (this.drillProgressWrap && this.drillProgressBar) {
+        this.drillProgressWrap.classList.remove('hidden');
+        this.drillProgressBar.style.width = `${Math.min(100, Math.round(pct * 100))}%`;
+      }
+    }
+
+    hideDrillProgress() {
+      if (this.drillProgressWrap) {
+        this.drillProgressWrap.classList.add('hidden');
+      }
     }
 
     showSensorAlert(roomName) {
       if (!this.situationText) return;
-      this.situationText.innerHTML = `<span style="color:#EF3124;font-weight:800;">ВНИМАНИЕ!</span> Датчик АльфаСтрахование (${roomName}) включил тревогу! 5 сек!`;
+      this.situationText.innerHTML = `<span style="color:#EF3124;font-weight:800;">ВНИМАНИЕ!</span> Датчик АльфаСтрахование (${roomName}) включил сирену! 5 сек!`;
     }
 
     showShieldNotification() {
@@ -183,49 +277,40 @@
     _drawRadar() {
       if (!this.radarCtx) return;
       const ctx = this.radarCtx;
-      const w = 190;
-      const h = 140;
+      const w = 190, h = 140;
 
       ctx.clearRect(0, 0, w, h);
 
-      // Фон миникарты
-      ctx.fillStyle = 'rgba(23, 25, 28, 0.85)';
+      ctx.fillStyle = 'rgba(23, 25, 28, 0.88)';
       GN.Tex.roundRect(ctx, 0, 0, w, h, 8);
       ctx.fill();
 
-      // Масштабирование: квартира 17м x 12м -> w x h
       const toRadarX = (wx) => ((wx + 8.5) / 17) * (w - 20) + 10;
       const toRadarY = (wz) => ((wz + 6.0) / 12) * (h - 20) + 10;
 
-      // Зоны квартиры
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 1;
-      // Гостиная (слева)
       ctx.strokeRect(toRadarX(-8.5), toRadarY(-6), (9 / 17) * (w - 20), (12 / 12) * (h - 20));
-      // Кухня (справа сверху)
       ctx.strokeRect(toRadarX(0.5), toRadarY(-6), (8 / 17) * (w - 20), (6.5 / 12) * (h - 20));
-      // Ванная (справа снизу)
       ctx.strokeRect(toRadarX(0.5), toRadarY(0.5), (8 / 17) * (w - 20), (5.5 / 12) * (h - 20));
 
-      // Подписи комнат
       ctx.font = '700 8px Manrope, sans-serif';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.fillText('ЗАЛ', toRadarX(-6.5), toRadarY(-4.5));
       ctx.fillText('КУХНЯ', toRadarX(3.5), toRadarY(-4.5));
       ctx.fillText('ВАННА', toRadarX(3.5), toRadarY(2.0));
 
-      // Интерактивные объекты
+      // Мебель
       this.game.objects.forEach(obj => {
         const rx = toRadarX(obj.pos[0]);
         const ry = toRadarY(obj.pos[2]);
-
         ctx.fillStyle = obj.broken ? '#555555' : (obj.tag.includes('water') ? '#00bfff' : '#ffd23f');
         ctx.beginPath();
         ctx.arc(rx, ry, obj.broken ? 2 : 3, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Датчики Альфы
+      // Датчики
       this.game.sensors.forEach(s => {
         const sx = toRadarX(s.worldPos.x);
         const sy = toRadarY(s.worldPos.z);
@@ -235,7 +320,7 @@
         ctx.fill();
       });
 
-      // Робот-пылесос
+      // Робот
       if (this.game.robot && this.game.robot.alive) {
         const rbx = toRadarX(this.game.robot.pos.x);
         const rby = toRadarY(this.game.robot.pos.z);
@@ -245,13 +330,12 @@
         ctx.fill();
       }
 
-      // Маркер игрока (Геннадий) и конус взгляда
+      // Игрок
       if (this.game.player) {
         const px = toRadarX(this.game.player.position.x);
         const py = toRadarY(this.game.player.position.z);
         const ang = this.game.player.facingAngle;
 
-        // Конус взгляда
         ctx.fillStyle = 'rgba(239, 49, 36, 0.35)';
         ctx.beginPath();
         ctx.moveTo(px, py);
@@ -259,7 +343,6 @@
         ctx.closePath();
         ctx.fill();
 
-        // Точка игрока
         ctx.fillStyle = '#EF3124';
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1.5;
@@ -270,7 +353,7 @@
       }
     }
 
-    // ---------------- ФИНАЛЬНЫЙ КАССОВЫЙ ЧЕК КАТАСТРОФЫ ----------------
+    // ---------------- КАССОВЫЙ ЧЕК КАТАСТРОФЫ ----------------
     _initFinalModal() {
       const toggle = document.getElementById('alfa-policy-toggle');
       const totalAmountDisplay = document.getElementById('receipt-total-amount');
@@ -281,13 +364,12 @@
         toggle.addEventListener('change', () => {
           const stamp = document.getElementById('stamp-alfa-paid');
           if (toggle.checked) {
-            // Включение страховки: перечеркивание суммы в 0 ₽
             totalAmountDisplay.innerHTML = `
               <span class="strikethrough">${this.game.damage.toLocaleString('ru-RU')} ₽</span>
               <span class="zero-rub">0 ₽ из вашего кармана</span>
             `;
-            promoBlock.classList.remove('hidden');
-            policyBanner.classList.remove('hidden');
+            if (promoBlock) promoBlock.classList.remove('hidden');
+            if (policyBanner) policyBanner.classList.remove('hidden');
             if (stamp) {
               stamp.classList.remove('hidden');
               stamp.classList.add('stamp-slam');
@@ -295,8 +377,8 @@
             GN.sound.playCashChime();
           } else {
             totalAmountDisplay.textContent = `${this.game.damage.toLocaleString('ru-RU')} ₽`;
-            promoBlock.classList.add('hidden');
-            policyBanner.classList.add('hidden');
+            if (promoBlock) promoBlock.classList.add('hidden');
+            if (policyBanner) policyBanner.classList.add('hidden');
             if (stamp) {
               stamp.classList.add('hidden');
               stamp.classList.remove('stamp-slam');
@@ -305,38 +387,37 @@
         });
       }
 
-      // Кнопка копирования промокода
-      const btnCopyPromo = document.getElementById('btn-copy-promo');
-      if (btnCopyPromo) {
-        btnCopyPromo.addEventListener('click', () => {
+      const btnCopy = document.getElementById('btn-copy-promo');
+      if (btnCopy) {
+        btnCopy.addEventListener('click', () => {
           navigator.clipboard.writeText('GENA15').then(() => {
-            btnCopyPromo.textContent = 'СКОПИРОВАНО! ✓';
-            setTimeout(() => { btnCopyPromo.textContent = 'СКОПИРОВАТЬ ПРОМОКОД'; }, 2000);
+            btnCopy.textContent = 'СКОПИРОВАНО!';
+            setTimeout(() => btnCopy.textContent = 'СКОПИРОВАТЬ', 2000);
+          }).catch(() => {
+            btnCopy.textContent = 'GENA15';
           });
         });
       }
 
-      // Кнопка перезапуска игры
       const btnRestart = document.getElementById('btn-restart');
       if (btnRestart) {
         btnRestart.addEventListener('click', () => {
-          window.location.reload();
+          location.reload();
         });
       }
     }
 
     showFinalReceipt(data) {
-      if (!this.receiptModal) return;
+      if (this.hud) this.hud.classList.add('hidden');
+      if (this.receiptModal) this.receiptModal.classList.remove('hidden');
 
-      // Определение звания разрушителя
-      let rank = 'Начинающий ремонтник';
-      if (data.totalDamage > 1500000) rank = 'Гроза панелек и стояков';
-      else if (data.totalDamage > 1000000) rank = 'Заслуженный шабашник района';
-      else if (data.totalDamage > 500000) rank = 'Магистр перфораторных наук';
+      const rankEl = document.getElementById('receipt-rank');
+      if (rankEl) {
+        if (data.totalDamage >= 1200000) rankEl.textContent = 'Магистр стихийных бедствий (Геннадий PRO)';
+        else if (data.totalDamage >= 600000) rankEl.textContent = 'Заслуженный шабашник района';
+        else rankEl.textContent = 'Начинающий возмутитель спокойствия';
+      }
 
-      document.getElementById('receipt-rank').textContent = rank;
-
-      // Заполнение списка сломанного имущества
       const listEl = document.getElementById('receipt-items-list');
       if (listEl) {
         listEl.innerHTML = '';
@@ -344,64 +425,59 @@
           const row = document.createElement('div');
           row.className = 'receipt-row';
           row.innerHTML = `
-            <span>${obj.name}</span>
-            <span class="receipt-price">${obj.cost.toLocaleString('ru-RU')} ₽</span>
+            <span>${obj.name} (${obj.room})</span>
+            <span>${obj.cost.toLocaleString('ru-RU')} ₽</span>
           `;
           listEl.appendChild(row);
         });
 
-        // Бонусы за квесты
-        data.quests.forEach(q => {
+        if (data.waterLevel > 15) {
           const row = document.createElement('div');
-          row.className = 'receipt-row bonus';
+          row.className = 'receipt-row';
           row.innerHTML = `
-            <span>Бонус: ${q.title}</span>
-            <span class="receipt-price">+${q.reward.toLocaleString('ru-RU')} ₽</span>
+            <span>Затопление паркета и потолка соседей (${data.waterLevel} см)</span>
+            <span>350 000 ₽</span>
           `;
           listEl.appendChild(row);
-        });
+        }
       }
 
-      const totalAmountDisplay = document.getElementById('receipt-total-amount');
-      if (totalAmountDisplay) {
-        totalAmountDisplay.textContent = `${data.totalDamage.toLocaleString('ru-RU')} ₽`;
+      const totalEl = document.getElementById('receipt-total-amount');
+      if (totalEl) {
+        totalEl.textContent = `${data.totalDamage.toLocaleString('ru-RU')} ₽`;
       }
-
-      this.hud.classList.add('hidden');
-      this.receiptModal.classList.remove('hidden');
     }
 
     // ---------------- ПРЕ-КАЛЬКУЛЯТОР НА ЛЕНДИНГЕ ----------------
     _initCalculator() {
-      const sliderRepair = document.getElementById('calc-slider-repair');
-      const sliderStuff = document.getElementById('calc-slider-stuff');
-      const sliderLiability = document.getElementById('calc-slider-liability');
+      const sRepair = document.getElementById('calc-slider-repair');
+      const sStuff = document.getElementById('calc-slider-stuff');
+      const sLiab = document.getElementById('calc-slider-liability');
 
-      const valRepair = document.getElementById('calc-val-repair');
-      const valStuff = document.getElementById('calc-val-stuff');
-      const valLiability = document.getElementById('calc-val-liability');
-      const priceMonthly = document.getElementById('calc-price-monthly');
+      const vRepair = document.getElementById('calc-val-repair');
+      const vStuff = document.getElementById('calc-val-stuff');
+      const vLiab = document.getElementById('calc-val-liability');
+      const pMonthly = document.getElementById('calc-price-monthly');
 
-      const recalculate = () => {
-        if (!sliderRepair || !sliderStuff || !sliderLiability) return;
-        const r = parseInt(sliderRepair.value, 10);
-        const s = parseInt(sliderStuff.value, 10);
-        const l = parseInt(sliderLiability.value, 10);
+      if (!sRepair || !sStuff || !sLiab) return;
 
-        valRepair.textContent = `${(r / 1000).toLocaleString('ru-RU')} тыс. ₽`;
-        valStuff.textContent = `${(s / 1000).toLocaleString('ru-RU')} тыс. ₽`;
-        valLiability.textContent = `${(l / 1000).toLocaleString('ru-RU')} тыс. ₽`;
+      const updateCalc = () => {
+        const r = parseInt(sRepair.value, 10);
+        const s = parseInt(sStuff.value, 10);
+        const l = parseInt(sLiab.value, 10);
 
-        // Формула приблизительного полиса АльфаСтрахования от ~350 руб/мес
-        const monthly = Math.round(350 + (r * 0.0003) + (s * 0.0004) + (l * 0.00035));
-        priceMonthly.textContent = `${monthly.toLocaleString('ru-RU')} ₽ / мес`;
+        if (vRepair) vRepair.textContent = (r / 1000) + ' тыс. ₽';
+        if (vStuff) vStuff.textContent = (s / 1000) + ' тыс. ₽';
+        if (vLiab) vLiab.textContent = (l / 1000) + ' тыс. ₽';
+
+        const monthly = Math.round(320 + (r / 100000) * 22 + (s / 100000) * 18 + (l / 100000) * 26);
+        if (pMonthly) pMonthly.textContent = `${monthly.toLocaleString('ru-RU')} ₽ / мес`;
       };
 
-      [sliderRepair, sliderStuff, sliderLiability].forEach(sl => {
-        if (sl) sl.addEventListener('input', recalculate);
-      });
-
-      recalculate();
+      sRepair.addEventListener('input', updateCalc);
+      sStuff.addEventListener('input', updateCalc);
+      sLiab.addEventListener('input', updateCalc);
+      updateCalc();
     }
   }
 

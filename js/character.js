@@ -173,6 +173,18 @@
       helmet.add(this.headlampLight);
       helmet.add(this.headlampLight.target);
 
+      // Звездочки оглушения над каской
+      this.stunStarsGroup = new THREE.Group();
+      this.stunStarsGroup.position.set(0, 0.32, 0);
+      this.stunStarsGroup.visible = false;
+      this.head.add(this.stunStarsGroup);
+
+      const starMat = M.mat('#ffdd00', 0.2, 0.4);
+      for (let i = 0; i < 3; i++) {
+        const star = M.sph(0.045, starMat, 0, 0, 0, this.stunStarsGroup, 6, 4);
+        star.position.set(Math.cos(i * 2.1) * 0.28, 0, Math.sin(i * 2.1) * 0.28);
+      }
+
       // 4. Руки и инструмент
       // Левая рука (с разводным ключом)
       this.leftArm = new THREE.Group();
@@ -334,15 +346,22 @@
       // Стан от робота
       if (this.isStunned) {
         this.stunTimer -= dt;
+        if (this.stunStarsGroup) {
+          this.stunStarsGroup.visible = true;
+          this.stunStarsGroup.rotation.y += dt * 8;
+        }
         this.head.rotation.z = Math.sin(this.animTime * 25) * 0.3;
         this.torso.rotation.x = 0.35;
         if (this.stunTimer <= 0) {
           this.isStunned = false;
+          if (this.stunStarsGroup) this.stunStarsGroup.visible = false;
           this.head.rotation.z = 0;
           this.torso.rotation.x = 0;
         }
         return;
       }
+
+      if (this.stunStarsGroup) this.stunStarsGroup.visible = false;
 
       // Плавный поворот в сторону движения
       if (this.isMoving) {
@@ -469,6 +488,22 @@
       this.stunTimer = duration;
       this.stopDrill();
       this.say('Ой, заклинило!', 1.5);
+    }
+
+    updateMenuIdle(dt) {
+      this.animTime += dt;
+      const t = this.animTime;
+      // Мягкое дыхание
+      this.torso.position.y = 0.72 + Math.sin(t * 1.8) * 0.02;
+      this.chest.scale.set(1.15 + Math.sin(t * 1.8) * 0.04, 1, 0.85);
+      // Покачивание каски и взгляд
+      this.head.rotation.y = Math.sin(t * 0.8) * 0.25;
+      this.head.rotation.x = Math.sin(t * 1.4) * 0.08;
+      // Гордое удерживание перфоратора
+      this.rightArm.rotation.x = -0.4 + Math.sin(t * 1.8) * 0.05;
+      this.drillTool.rotation.x = Math.PI / 3 + Math.sin(t * 1.8) * 0.06;
+      // Левая рука с ключом
+      this.leftArm.rotation.x = -0.2 + Math.cos(t * 1.8) * 0.05;
     }
   }
 

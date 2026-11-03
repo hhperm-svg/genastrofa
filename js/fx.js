@@ -32,18 +32,19 @@
       // Полупрозрачный зеркальный меш воды
       const geo = new THREE.PlaneGeometry(17, 12, 32, 24);
       this.waterMat = new THREE.MeshStandardMaterial({
-        color: '#288ab8',
-        roughness: 0.1,
-        metalness: 0.35,
+        color: '#2eaae0',
+        roughness: 0.05,
+        metalness: 0.1,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.75,
         depthWrite: false
       });
 
       this.waterMesh = new THREE.Mesh(geo, this.waterMat);
       this.waterMesh.rotation.x = -Math.PI / 2;
       this.waterMesh.position.set(0, -0.05, 0); // Чуть ниже пола изначально
-      this.waterMesh.receiveShadow = true;
+      this.waterMesh.receiveShadow = false;
+      this.waterMesh.castShadow = false;
       this.scene.add(this.waterMesh);
 
       this.waterPosAttr = geo.attributes.position;
@@ -353,6 +354,64 @@
       this.scene.add(m);
       this.decals.push(m);
       return m;
+    }
+
+    // 3D комикс-всплывашка текста/урона
+    popupText(text, pos, color = '#ffdd00') {
+      const c = document.createElement('canvas');
+      c.width = 384;
+      c.height = 128;
+      const ctx = c.getContext('2d');
+
+      ctx.font = '900 48px Unbounded, Impact, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Жирный черный контур в стиле комиксов
+      ctx.strokeStyle = '#17191C';
+      ctx.lineWidth = 10;
+      ctx.lineJoin = 'miter';
+      ctx.miterLimit = 2;
+      ctx.strokeText(text, 192, 64);
+
+      // Яркая цветная заливка
+      ctx.fillStyle = color;
+      ctx.fillText(text, 192, 64);
+
+      const tex = new THREE.CanvasTexture(c);
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+      const geo = new THREE.PlaneGeometry(1.9, 0.65);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(pos.x, pos.y + 0.8, pos.z);
+      this.scene.add(mesh);
+
+      let life = 0.9;
+      this.tweens.push({
+        duration: life,
+        update: (dt) => {
+          life -= dt;
+          mesh.position.y += dt * 1.6;
+          if (this.camera) mesh.quaternion.copy(this.camera.quaternion);
+
+          const scale = 1 + Math.sin((1 - life / 0.9) * Math.PI) * 0.25;
+          mesh.scale.set(scale, scale, scale);
+          mat.opacity = Math.max(0, life / 0.9);
+
+          if (life <= 0) {
+            this.scene.remove(mesh);
+            geo.dispose();
+            mat.dispose();
+            tex.dispose();
+            return false;
+          }
+          return true;
+        }
+      });
     }
 
     // Вспомогательный твин

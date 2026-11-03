@@ -18,8 +18,22 @@
 </head>
 <body>
 
-  <!-- Контейнер для Three.js 3D-диорамы -->
+  <!-- Контейнер для Three.js 3D-диорамы (Всегда виден на 100%) -->
   <div id="canvas-container"></div>
+
+  <!-- Плавающий 3D-промпт действия над ближайшей мебелью -->
+  <div id="proximity-prompt" class="proximity-prompt hidden">
+    <span class="prompt-key">E</span>
+    <span class="prompt-text">Сломать (+95 000 ₽)</span>
+  </div>
+
+  <!-- Полоса зажатия бура [Q] -->
+  <div id="drill-progress-wrap" class="drill-progress-wrap hidden">
+    <div class="drill-progress-label">БУРЕНИЕ НЕСУЩЕЙ СТЕНЫ...</div>
+    <div class="drill-progress-track">
+      <div id="drill-progress-bar" class="drill-progress-bar"></div>
+    </div>
+  </div>
 
   <!-- Нотификация срабатывания датчика АльфаСтрахование -->
   <div id="shield-alert" class="hidden">
@@ -27,58 +41,117 @@
   </div>
 
   <!-- ==========================================================================
-       ЭКРАН 1: ПРИВЕТСТВЕННЫЙ ЭКРАН (HERO OVERLAY)
+       ЭКРАН 1: ТИТУЛЬНЫЙ 3D-ЭКРАН И ВЫБОР СЦЕНАРИЕВ
        ========================================================================== -->
   <div id="hero-overlay">
-    <div class="hero-modal">
-      <!-- Иллюстрированный заглавный баннер игры -->
-      <div class="hero-art-banner">
-        <img src="assets/hero-banner.svg" alt="ГЕНАСТРОФА: Симулятор соседа сверху" class="hero-banner-img">
+    <div class="hero-sidebar">
+      <div class="hero-brand-header">
+        <div class="alfa-badge-pill">
+          <span class="alfa-dot"></span>
+          <span>АльфаСтрахование · Спецпроект</span>
+        </div>
+        <h1 class="hero-title">ГЕНАСТРОФА</h1>
+        <p class="hero-subtitle">Симулятор соседа сверху в 3D</p>
       </div>
 
-      <div class="class-picker-title">Выберите экипировку Геннадия:</div>
+      <div class="section-label">1. ВЫБЕРИТЕ СЦЕНАРИЙ СПЕЦОПЕРАЦИИ:</div>
+      <div class="scenarios-grid">
+        <div class="scenario-select-card selected" data-scenario-id="1">
+          <div class="sc-card-top">
+            <span class="sc-badge">🌊 СЦЕНАРИЙ 1</span>
+            <span class="sc-reward">до 550 тыс. ₽</span>
+          </div>
+          <div class="sc-name">Венеция в хрущёвке</div>
+          <div class="sc-desc">Сорвать стояк в ванной, переполнить чугунную ванну и затопить соседей до гостиной.</div>
+        </div>
 
+        <div class="scenario-select-card" data-scenario-id="2">
+          <div class="sc-card-top">
+            <span class="sc-badge">🔨 СЦЕНАРИЙ 2</span>
+            <span class="sc-reward">до 750 тыс. ₽</span>
+          </div>
+          <div class="sc-name">Симфония несущей стены</div>
+          <div class="sc-desc">Пробурить скрытую трубу (Q), бросить пудовую гирю 24 кг (F) и включить шансон (R).</div>
+        </div>
+
+        <div class="scenario-select-card" data-scenario-id="3">
+          <div class="sc-card-top">
+            <span class="sc-badge">⚡ СЦЕНАРИЙ 3</span>
+            <span class="sc-reward">до 850 тыс. ₽</span>
+          </div>
+          <div class="sc-name">Кухонный резонанс</div>
+          <div class="sc-desc">Взорвать самогонный аппарат «Первач-Люкс», разнести холодильник BORK и замкнуть фазу.</div>
+        </div>
+
+        <div class="scenario-select-card" data-scenario-id="4">
+          <div class="sc-card-top">
+            <span class="sc-badge">💥 СЦЕНАРИЙ 4</span>
+            <span class="sc-reward">до 1.5 млн ₽</span>
+          </div>
+          <div class="sc-name">Тотальный капремонт</div>
+          <div class="sc-desc">Свободный режим песочницы: разнести всю квартиру за 60 секунд на максимальный чек!</div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:12px;">2. ЭКИПИРОВКА ГЕННАДИЯ:</div>
       <div class="class-cards-grid">
         <div class="class-card selected" data-class="drill">
-          <div class="class-badge-img">
-            <img src="assets/icon-drill.svg" alt="Мастер Перфоратора" width="56" height="56">
-          </div>
-          <div class="class-info">
-            <div class="class-name">Мастер Перфоратора</div>
-            <div class="class-perk">+50% к урону буром и гирей 24 кг. Бурит несущие стены за секунды.</div>
-          </div>
+          <div class="class-name">⚡ Перфораторщик</div>
+          <div class="class-perk">+50% к урону буром и гирей 24 кг</div>
         </div>
-
         <div class="class-card" data-class="aqua">
-          <div class="class-badge-img">
-            <img src="assets/icon-aqua.svg" alt="Аква-Террорист" width="56" height="56">
-          </div>
-          <div class="class-info">
-            <div class="class-name">Аква-Террорист</div>
-            <div class="class-perk">x2 скорость затопления квартиры и двойной урон от цепного замыкания в воде.</div>
-          </div>
+          <div class="class-name">🌊 Аква-Террорист</div>
+          <div class="class-perk">x2 скорость затопления и комбо КЗ</div>
         </div>
-
         <div class="class-card" data-class="music">
-          <div class="class-badge-img">
-            <img src="assets/icon-music.svg" alt="Ночной Меломан" width="56" height="56">
-          </div>
-          <div class="class-info">
-            <div class="class-name">Ночной Меломан</div>
-            <div class="class-perk">-40% перезарядка звуковой волны (шансон по батарее) и спринта.</div>
-          </div>
+          <div class="class-name">📻 Ночной Меломан</div>
+          <div class="class-perk">-40% кулдаун шансона и рывка</div>
         </div>
       </div>
 
       <div class="hero-actions">
-        <button id="btn-start-game" class="btn-primary">НАЧАТЬ КАПРЕМОНТ (60 СЕК) →</button>
+        <button id="btn-start-game" class="btn-primary">НАЧАТЬ ОПЕРАЦИЮ →</button>
         <a href="#landing-page" class="btn-secondary">Калькулятор полиса ↓</a>
       </div>
     </div>
   </div>
 
   <!-- ==========================================================================
-       ЭКРАН 2: ИГРОВОЙ HUD (КОТАСТРОФА STYLE)
+       КОМИКС-БРИФИНГ МИССИИ (В СТИЛЕ AVIASALES RED SOLUTION / ДОБРЫЙ)
+       ========================================================================== -->
+  <div id="briefing-modal" class="hidden">
+    <div class="briefing-sheet">
+      <div class="briefing-header">
+        <span id="briefing-badge" class="sc-badge">🌊 СЦЕНАРИЙ 1</span>
+        <h2 id="briefing-title">«Венеция в хрущёвке»</h2>
+      </div>
+
+      <div id="briefing-text" class="briefing-text">
+        <!-- Текст брифинга генерируется из JS -->
+      </div>
+
+      <div class="briefing-goals-box">
+        <div class="goals-title">БОЕВЫЕ ЗАДАЧИ МИССИИ:</div>
+        <ul id="briefing-goals" class="briefing-goals-list">
+          <!-- Цели миссии -->
+        </ul>
+      </div>
+
+      <div class="briefing-controls-hint">
+        <div class="hint-col">
+          <strong>Управление:</strong> <code>WASD</code> — бег, <code>SHIFT</code> — рывок, <code>SPACE</code> — прыжок (на диван/стол)
+        </div>
+        <div class="hint-col">
+          <strong>Инструменты:</strong> <code>[E]</code> — ключ, <code>[Q]</code> — зажать бур, <code>[F]</code> — гиря 24 кг, <code>[R]</code> — шансон
+        </div>
+      </div>
+
+      <button id="btn-launch-scenario" class="btn-primary btn-launch">ПОГНАЛИ! (В БОЙ) →</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ЭКРАН 2: ИГРОВОЙ HUD (ЧИСТЫЙ, КИНЕМАТОГРАФИЧНЫЙ)
        ========================================================================== -->
   <div id="hud" class="hidden">
     <!-- Верхний левый угол -->
@@ -110,7 +183,7 @@
         </div>
       </div>
       <div id="situation-text" class="situation-bar">
-        Перфоратор заряжен. Ищите скрытую проводку или итальянский кафель
+        Перфоратор заряжен. Ищите скрытую магистраль или главный стояк водоснабжения!
       </div>
     </div>
 
@@ -120,15 +193,15 @@
       <button id="btn-early-finish" class="hud-btn text-btn">🧾 Выставить счёт</button>
     </div>
 
-    <!-- Левая панель: карточка побочной диверсии -->
+    <!-- Левая панель: карточка активного сценария -->
     <div class="hud-left-panel">
       <div class="quest-card">
         <div class="quest-header">
-          <span class="quest-tag">ПОБОЧНАЯ ДИВЕРСИЯ</span>
-          <span id="quest-reward" class="quest-reward">+90 000 ₽</span>
+          <span id="scenario-badge" class="quest-tag">🌊 СЦЕНАРИЙ 1</span>
+          <span id="scenario-target" class="quest-reward">Цель: от 450 000 ₽</span>
         </div>
-        <div id="quest-title" class="quest-title">Диверсия №1: «Венеция в хрущёвке»</div>
-        <ul id="quest-steps" class="quest-steps">
+        <div id="scenario-title" class="quest-title">«Венеция в хрущёвке»</div>
+        <ul id="scenario-steps" class="quest-steps">
           <!-- Генерируется из JS -->
         </ul>
       </div>
@@ -145,7 +218,7 @@
       </div>
     </div>
 
-    <!-- Нижний центр: Док-панель клавиш и кулдаунов -->
+    <!-- Нижний центр: Док клавиш и кулдаунов -->
     <div class="hud-bottom-center">
       <div class="control-keys-dock">
         <div class="key-box">
@@ -289,7 +362,7 @@
         <div class="calc-info">
           <div class="cobrand-badge">
             <span class="alfa-dot"></span>
-            <span>Защита от реальных Геннадиев</span>
+            <span>Защита от реальных соседей</span>
           </div>
           <h2>Защитите квартиру от <span>соседей сверху</span></h2>
           <p>
@@ -364,7 +437,7 @@
         const game = new window.GN.Game();
         const ui = new window.GN.UIManager(game);
         window.GN.UI = ui;
-        console.log('ГЕНАСТРОФА успешно инициализирована!');
+        console.log('ГЕНАСТРОФА 3D успешно запущена!');
       } catch (err) {
         console.error('Ошибка инициализации игры:', err);
       }
