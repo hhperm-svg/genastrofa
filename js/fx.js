@@ -20,23 +20,26 @@
       this.shakeDuration = 0;
 
       // Уровень затопления
-      this.waterLevel = 0; // в процентах 0..100
+      this.waterLevel = 0; // в сантиметрах 0..45
       this.waterHeight = 0; // в мировых координатах y
       this.waterTargetHeight = 0;
+      this.maxWaterHeight = 0.45;
+      this.floodingEnabled = false;
+      this.floodRateMult = 1;
 
       this._initWaterPlane();
       this._initShieldDome();
     }
 
     _initWaterPlane() {
-      // Полупрозрачный зеркальный меш воды
-      const geo = new THREE.PlaneGeometry(17, 12, 32, 24);
+      // Идеально гладкое зеркальное покрытие воды без швов полигонов
+      const geo = new THREE.PlaneGeometry(17, 12, 1, 1);
       this.waterMat = new THREE.MeshStandardMaterial({
         color: '#2eaae0',
-        roughness: 0.05,
+        roughness: 0.1,
         metalness: 0.1,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.70,
         depthWrite: false
       });
 
@@ -46,12 +49,6 @@
       this.waterMesh.receiveShadow = false;
       this.waterMesh.castShadow = false;
       this.scene.add(this.waterMesh);
-
-      this.waterPosAttr = geo.attributes.position;
-      this.waterBaseY = new Float32Array(this.waterPosAttr.count);
-      for (let i = 0; i < this.waterPosAttr.count; i++) {
-        this.waterBaseY[i] = this.waterPosAttr.getZ(i); // Z в PlaneGeometry после ротации станет Y
-      }
     }
 
     _initShieldDome() {
@@ -67,6 +64,7 @@
 
       this.domeMesh = new THREE.Mesh(domeGeo, this.domeMat);
       this.domeMesh.position.set(0, 0, 0);
+      this.domeMesh.visible = false;
       this.scene.add(this.domeMesh);
 
       // Внутреннее свечение купола
@@ -87,6 +85,7 @@
     activateShield(duration = 5.0) {
       this.shieldActive = true;
       this.shieldTimer = duration;
+      this.domeMesh.visible = true;
       this.domeMat.opacity = 0.55;
       this.domeGlowMat.opacity = 0.18;
       GN.sound.playShieldDome();
@@ -95,6 +94,7 @@
     deactivateShield() {
       this.shieldActive = false;
       this.shieldTimer = 0;
+      this.domeMesh.visible = false;
       this.domeMat.opacity = 0;
       this.domeGlowMat.opacity = 0;
     }
@@ -454,22 +454,22 @@
       }
 
       // 3. Подъем уровня воды и рябь на волнах
+      // Пробитые трубы продолжают заливать квартиру, пока идёт игра
+      if (this.floodingEnabled && this.waterJets.length) {
+        let rate = 0;
+        this.waterJets.forEach(jet => { rate += jet.big ? 0.004 : 0.0015; });
+        this.waterTargetHeight = Math.min(this.maxWaterHeight, this.waterTargetHeight + rate * (this.floodRateMult || 1) * dt);
+      }
       if (this.waterHeight < this.waterTargetHeight) {
         this.waterHeight = Math.min(this.waterTargetHeight, this.waterHeight + dt * 0.035);
         this.waterMesh.position.y = this.waterHeight;
-        this.waterLevel = Math.min(100, (this.waterHeight / 0.4) * 100);
+        // waterLevel — уровень воды в сантиметрах (0..45)
+        this.waterLevel = this.waterHeight * 100;
       }
 
-      // Рябь на воде
-      if (this.waterHeight > 0.01) {
-        const time = Date.now() * 0.003;
-        for (let i = 0; i < this.waterPosAttr.count; i++) {
-          const x = this.waterPosAttr.getX(i);
-          const y = this.waterPosAttr.getY(i);
-          const wave = Math.sin(x * 1.8 + time) * Math.cos(y * 1.8 + time) * 0.02;
-          this.waterPosAttr.setZ(i, wave);
-        }
-        this.waterPosAttr.needsUpdate = true;
+      // Мягкое мерцание водного зеркала
+      if (this.waterHeight > 0.005) {
+        this.waterMat.opacity = 0.68 + Math.sin(Date.now() * 0.002) * 0.04;
       }
 
       // 4. Генерация частиц из гейзеров

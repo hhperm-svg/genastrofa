@@ -83,7 +83,7 @@
       if (btnMute) {
         btnMute.addEventListener('click', () => {
           const isMuted = GN.sound.toggleMute();
-          btnMute.textContent = isMuted ? '🔇' : '♪';
+          btnMute.textContent = isMuted ? 'ЗВУК ВЫКЛ' : 'ЗВУК';
           btnMute.title = isMuted ? 'Включить звук' : 'Выключить звук';
         });
       }
@@ -200,8 +200,9 @@
 
       // Вода
       if (this.waterVal) {
-        const cm = Math.round((waterLevel / 100) * 45);
-        this.waterVal.textContent = `Вода: ${cm} см (${Math.round(waterLevel)}%)`;
+        const cm = Math.round(waterLevel);
+        const pct = Math.min(100, Math.round((cm / 45) * 100));
+        this.waterVal.textContent = `Вода: ${cm} см (${pct}%)`;
       }
 
       // Кулдауны
@@ -363,9 +364,10 @@
       if (toggle) {
         toggle.addEventListener('change', () => {
           const stamp = document.getElementById('stamp-alfa-paid');
+          const finalSum = this.finalTotalDamage || this.game.damage;
           if (toggle.checked) {
             totalAmountDisplay.innerHTML = `
-              <span class="strikethrough">${this.game.damage.toLocaleString('ru-RU')} ₽</span>
+              <span class="strikethrough">${finalSum.toLocaleString('ru-RU')} ₽</span>
               <span class="zero-rub">0 ₽ из вашего кармана</span>
             `;
             if (promoBlock) promoBlock.classList.remove('hidden');
@@ -376,7 +378,7 @@
             }
             GN.sound.playCashChime();
           } else {
-            totalAmountDisplay.textContent = `${this.game.damage.toLocaleString('ru-RU')} ₽`;
+            totalAmountDisplay.textContent = `${finalSum.toLocaleString('ru-RU')} ₽`;
             if (promoBlock) promoBlock.classList.add('hidden');
             if (policyBanner) policyBanner.classList.add('hidden');
             if (stamp) {
@@ -411,6 +413,8 @@
       if (this.hud) this.hud.classList.add('hidden');
       if (this.receiptModal) this.receiptModal.classList.remove('hidden');
 
+      this.finalTotalDamage = data.totalDamage;
+
       const rankEl = document.getElementById('receipt-rank');
       if (rankEl) {
         if (data.totalDamage >= 1200000) rankEl.textContent = 'Магистр стихийных бедствий (Геннадий PRO)';
@@ -431,12 +435,12 @@
           listEl.appendChild(row);
         });
 
-        if (data.waterLevel > 15) {
+        if (data.floodDamage && data.floodDamage > 0) {
           const row = document.createElement('div');
           row.className = 'receipt-row';
           row.innerHTML = `
             <span>Затопление паркета и потолка соседей (${data.waterLevel} см)</span>
-            <span>350 000 ₽</span>
+            <span>${data.floodDamage.toLocaleString('ru-RU')} ₽</span>
           `;
           listEl.appendChild(row);
         }

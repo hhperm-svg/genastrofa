@@ -40,6 +40,10 @@ body, html {
   -webkit-font-smoothing: antialiased;
 }
 
+body.playing {
+  overflow: hidden !important;
+}
+
 #canvas-container {
   position: fixed;
   top: 0;

@@ -142,7 +142,9 @@
         this.scene.add(built.group);
 
         const focusOffset = built.focus || [0, 0.8, 0];
-        const worldCenter = built.group.position.clone().add(new V3(focusOffset[0], focusOffset[1], focusOffset[2]));
+        const worldCenter = built.group.position.clone().add(
+          new V3(focusOffset[0], focusOffset[1], focusOffset[2]).applyAxisAngle(new V3(0, 1, 0), s.rot)
+        );
 
         const obj = {
           ...s,
@@ -153,8 +155,12 @@
         };
 
         if (built.size && built.size[0] > 0.2) {
-          const hw = built.size[0] / 2;
-          const hd = (built.size[1] || 0.6) / 2;
+          // Учитываем поворот предмета: при ±90° ширина и глубина меняются местами
+          const quarter = Math.abs(Math.sin(s.rot)) > 0.7;
+          const w = built.size[0];
+          const dpt = built.size[1] || 0.6;
+          const hw = (quarter ? dpt : w) / 2;
+          const hd = (quarter ? w : dpt) / 2;
           this.colliders.push({
             x0: s.pos[0] - hw,
             x1: s.pos[0] + hw,
@@ -209,19 +215,34 @@
         speed: 2.3,
         chaseSpeed: 4.6,
         waypointIndex: 0,
+        chaseCooldown: 0,
+        // Маршрут проходит только через дверные проёмы (стена кухня/ванная глухая)
         waypoints: [
           new V3(-6.5, 0, 4.2),
-          new V3(-4.0, 0, 2.0),
-          new V3(-4.0, 0, -2.5),
-          new V3(0.5, 0, -2.8),
+          new V3(-4.4, 0, 2.2),
+          new V3(-4.4, 0, -2.8),
+          new V3(-0.2, 0, -2.8),
+          new V3(2.2, 0, -2.8),
           new V3(4.5, 0, -3.5),
-          new V3(7.0, 0, -1.8),
-          new V3(4.5, 0, 2.5),
-          new V3(2.5, 0, 4.0),
-          new V3(0.5, 0, 2.8),
-          new V3(-4.5, 0, 3.5)
+          new V3(7.0, 0, -2.6),
+          new V3(7.0, 0, -1.0),
+          new V3(2.2, 0, -1.0),
+          new V3(1.4, 0, -2.8),
+          new V3(-0.2, 0, -2.8),
+          new V3(-0.2, 0, 2.9),
+          new V3(2.5, 0, 2.9),
+          new V3(5.0, 0, 3.8),
+          new V3(2.5, 0, 2.9),
+          new V3(-0.2, 0, 2.9),
+          new V3(-4.0, 0, 4.2)
         ]
       };
+    }
+
+    // Зона квартиры по координатам: комната / кухня / ванная
+    _zoneOf(x, z) {
+      if (x < 0.5) return 'living';
+      return z < 0.5 ? 'kitchen' : 'bath';
     }
 
     _initCharacter() {
@@ -264,7 +285,7 @@
       this.scenarios = [
         {
           id: 1,
-          badge: '🌊 СЦЕНАРИЙ 1',
+          badge: 'СЦЕНАРИЙ 01',
           name: '«Венеция в хрущёвке»',
           subtitle: 'Потоп высшей категории со срывом стояка',
           targetDamage: 450000,
@@ -282,7 +303,7 @@
         },
         {
           id: 2,
-          badge: '🔨 СЦЕНАРИЙ 2',
+          badge: 'СЦЕНАРИЙ 02',
           name: '«Симфония несущей стены»',
           subtitle: 'Вибро-акустический капремонт в субботу утром',
           targetDamage: 550000,
@@ -300,7 +321,7 @@
         },
         {
           id: 3,
-          badge: '⚡ СЦЕНАРИЙ 3',
+          badge: 'СЦЕНАРИЙ 03',
           name: '«Кухонный резонанс»',
           subtitle: 'Короткое замыкание, пар и взрыв аппарата',
           targetDamage: 650000,
@@ -312,13 +333,13 @@
           steps: [
             { id: 'still', desc: 'Взорвать самогонный аппарат «Первач-Люкс» [E]', done: false },
             { id: 'fridge', desc: 'Разнести умный холодильник BORK [E]', done: false },
-            { id: 'combo_water_electric', desc: 'Устроить комбо: КЗ в воде (Вода + Ток) [⚡]', done: false }
+            { id: 'combo_water_electric', desc: 'Устроить комбо: КЗ в воде (Вода + Ток) [КЗ]', done: false }
           ],
           completed: false
         },
         {
           id: 4,
-          badge: '💥 СЦЕНАРИЙ 4',
+          badge: 'СЦЕНАРИЙ 04',
           name: '«Тотальный капремонт»',
           subtitle: 'Свободная песочница: разнести всё за 60 секунд',
           targetDamage: 1200000,
@@ -338,7 +359,16 @@
     }
 
     _initInput() {
+      const gameKeys = new Set([
+        'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+        'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'KeyQ', 'KeyF', 'KeyR'
+      ]);
+
       window.addEventListener('keydown', e => {
+        if (this.state === 'PLAYING' && gameKeys.has(e.code)) {
+          e.preventDefault();
+        }
+
         this.keys[e.code] = true;
 
         if (this.state === 'PLAYING') {
@@ -354,6 +384,10 @@
       });
 
       window.addEventListener('keyup', e => {
+        if (this.state === 'PLAYING' && gameKeys.has(e.code)) {
+          e.preventDefault();
+        }
+
         this.keys[e.code] = false;
 
         if (e.code === 'KeyQ') this.stopDrilling();
@@ -367,7 +401,9 @@
       let prevMouseY = 0;
 
       window.addEventListener('mousedown', e => {
-        if (e.target.closest('#hud') || e.target.closest('#modal') || e.target.closest('.interactive-card')) return;
+        if (e.target.closest('#hud') || e.target.closest('#modal') || e.target.closest('.interactive-card') ||
+            e.target.closest('.hero-sidebar') || e.target.closest('#briefing-modal') ||
+            e.target.closest('#receipt-modal') || e.target.closest('#landing-page')) return;
         isDragging = true;
         prevMouseX = e.clientX;
         prevMouseY = e.clientY;
@@ -388,10 +424,15 @@
       window.addEventListener('mouseup', () => { isDragging = false; });
 
       window.addEventListener('wheel', e => {
-        if (e.target.closest('#landing-page')) return;
-        this.camDistance = Math.max(11, Math.min(26, this.camDistance + e.deltaY * 0.015));
-        this._updateCameraPosition();
-      });
+        if (this.state === 'PLAYING') {
+          e.preventDefault();
+          this.camDistance = Math.max(11, Math.min(26, this.camDistance + e.deltaY * 0.015));
+          this._updateCameraPosition();
+        } else if (!e.target.closest('#landing-page')) {
+          this.camDistance = Math.max(11, Math.min(26, this.camDistance + e.deltaY * 0.015));
+          this._updateCameraPosition();
+        }
+      }, { passive: false });
     }
 
     _updateCameraPosition() {
@@ -456,6 +497,12 @@
       // Поиск интерактивного объекта перед Геннадием
       const interactObj = this.getInteractableInFront(2.4);
       if (interactObj && !interactObj.broken) {
+        if (interactObj.id === 'pipe') {
+          GN.sound.playWrenchClank();
+          this.player.say('Ключом трубу в бетоне не достать! Нужен перфоратор [Q]!', 2.2);
+          this.fx.popupText('НУЖЕН БУР [Q]!', interactObj.worldCenter, '#ff8800');
+          return;
+        }
         this.damageObject(interactObj, 100, 'wrench');
       }
     }
@@ -487,6 +534,21 @@
           const d = pPos.distanceTo(obj.worldCenter);
           if (d <= radius) {
             this.damageObject(obj, 100, 'sound');
+          }
+        }
+      });
+
+      // Глушит активные датчики Альфы звуковой волной
+      this.sensors.forEach(sensor => {
+        if (sensor.active && !sensor.disabled) {
+          const d = pPos.distanceTo(sensor.worldPos);
+          if (d <= radius) {
+            sensor.disabled = true;
+            sensor.active = false;
+            sensor.parts.draw('ГЛУШ!', false);
+            GN.sound.playGlassSmash();
+            this.fx.popupText('ЗАГЛУШЕН!', sensor.worldPos, '#4be3ff');
+            this.addDamage(35000, 'Датчик заглушен шансоном!');
           }
         }
       });
@@ -685,8 +747,8 @@
         this.finishGame(false);
       }
 
-      // Проверка уровня воды для сценариев
-      if (this.fx.waterLevel > 20) {
+      // Проверка уровня воды для сценариев (20 см)
+      if (this.fx.waterLevel >= 20) {
         this.checkCurrentScenarioStep('water_level_20');
       }
 
@@ -702,6 +764,24 @@
     }
 
     _updatePlayer(dt) {
+      // Динамический расчет высоты опоры под ногами (пол y=0 или верх мебели)
+      let curGroundY = 0;
+      const px = this.player.position.x;
+      const pz = this.player.position.z;
+      const py = this.player.position.y;
+      const footRadius = 0.35;
+      for (let i = 0; i < this.colliders.length; i++) {
+        const c = this.colliders[i];
+        if (c.top && c.top < 2.5) {
+          if (px + footRadius > c.x0 && px - footRadius < c.x1 && pz + footRadius > c.z0 && pz - footRadius < c.z1) {
+            if (py >= c.top - 0.18) {
+              if (c.top > curGroundY) curGroundY = c.top;
+            }
+          }
+        }
+      }
+      this.player.groundY = curGroundY;
+
       // Логика зажатия бура [Q] с прогрессом
       if (this.isDrillHeld && !this.player.isStunned) {
         const obj = this.getInteractableInFront(2.2);
@@ -773,7 +853,7 @@
         const c = this.colliders[i];
         if (x + radius > c.x0 && x - radius < c.x1 && z + radius > c.z0 && z - radius < c.z1) {
           // Если игрок выше предмета — позволяем стоять/ходить на нем
-          if (c.top && playerY >= c.top - 0.1) {
+          if (c.top && playerY >= c.top - 0.15) {
             continue;
           }
           return true;
@@ -788,13 +868,14 @@
       const pPos = this.player.position;
       const rPos = this.robot.pos;
       const distToPlayer = rPos.distanceTo(pPos);
+      const sameZone = this._zoneOf(rPos.x, rPos.z) === this._zoneOf(pPos.x, pPos.z);
+      if (this.robot.chaseCooldown > 0) this.robot.chaseCooldown -= dt;
 
-      if (distToPlayer < 5.2 && !this.player.isStunned) {
+      if (distToPlayer < 5.2 && sameZone && !this.player.isStunned && this.robot.chaseCooldown <= 0) {
         this.robot.state = 'CHASE';
         this.robot.parts.ledMat.color.set('#ff0033');
-      } else if (distToPlayer > 7.5) {
-        this.robot.state = 'PATROL';
-        this.robot.parts.ledMat.color.set('#45e07a');
+      } else if (this.robot.state === 'CHASE' && (distToPlayer > 7.5 || !sameZone || this.player.isStunned)) {
+        this._robotResumePatrol();
       }
 
       let targetPos;
@@ -822,13 +903,43 @@
 
       const toTarget = new V3().subVectors(targetPos, rPos);
       toTarget.y = 0;
+      if (toTarget.lengthSq() < 1e-6) return;
       toTarget.normalize();
 
-      rPos.x += toTarget.x * spd * dt;
-      rPos.z += toTarget.z * spd * dt;
+      const nx = rPos.x + toTarget.x * spd * dt;
+      const nz = rPos.z + toTarget.z * spd * dt;
+      if (this.robot.state === 'CHASE') {
+        // В погоне пылесос объезжает мебель и не проходит сквозь стены
+        const canX = !this._checkCollision(nx, rPos.z, 0, 0.3);
+        const canZ = !this._checkCollision(rPos.x, nz, 0, 0.3);
+        if (canX) rPos.x = nx;
+        if (canZ) rPos.z = nz;
+        if (!canX && !canZ) {
+          this.robot.chaseCooldown = 2.5;
+          this._robotResumePatrol();
+        }
+      } else {
+        rPos.x = nx;
+        rPos.z = nz;
+      }
       this.robot.group.rotation.y = Math.atan2(toTarget.x, toTarget.z);
 
       this.robot.parts.brushes.forEach(b => { b.rotation.y += dt * 25; });
+    }
+
+    // Возврат к патрулю: ближайшая точка маршрута в той же зоне, чтобы не ехать сквозь стену
+    _robotResumePatrol() {
+      const r = this.robot;
+      r.state = 'PATROL';
+      r.parts.ledMat.color.set('#45e07a');
+      const zone = this._zoneOf(r.pos.x, r.pos.z);
+      let best = -1, bestD = Infinity;
+      r.waypoints.forEach((wp, i) => {
+        if (this._zoneOf(wp.x, wp.z) !== zone) return;
+        const d = wp.distanceTo(r.pos);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      if (best >= 0) r.waypointIndex = best;
     }
 
     _updateSensors(dt) {
@@ -911,6 +1022,9 @@
 
       this.playerClass = playerClass;
       this.state = 'PLAYING';
+      document.body.classList.add('playing');
+      this.fx.floodingEnabled = true;
+      this.fx.floodRateMult = (playerClass === 'aqua' ? 1.6 : 1.0);
 
       const sc = this.scenarios.find(s => s.id === this.selectedScenarioId) || this.scenarios[0];
       this.timeLeft = sc.timeLimit;
@@ -940,9 +1054,16 @@
     }
 
     finishGame(isVictory = false) {
+      if (this.state === 'GAMEOVER') return;
       this.state = 'GAMEOVER';
+      document.body.classList.remove('playing');
       this.player.stopDrill();
+      this.fx.floodingEnabled = false;
       GN.sound.stopBGM();
+
+      // Расчет ущерба от затопления
+      const floodDamage = Math.round(this.fx.waterLevel * 8000);
+      const grandTotal = this.damage + floodDamage;
 
       const sc = this.scenarios.find(s => s.id === this.selectedScenarioId) || this.scenarios[0];
 
@@ -950,7 +1071,9 @@
         window.GN.UI.showFinalReceipt({
           isVictory,
           scenario: sc,
-          totalDamage: this.damage,
+          baseDamage: this.damage,
+          floodDamage,
+          totalDamage: grandTotal,
           objects: this.objects.filter(o => o.broken),
           waterLevel: Math.round(this.fx.waterLevel)
         });

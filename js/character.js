@@ -371,12 +371,20 @@
         this.group.rotation.y = this.facingAngle;
       }
 
-      // Гравитация и прыжки
+      // Гравитация и прыжки (groundY — высота опоры под ногами: пол или мебель)
+      const groundY = this.groundY || 0;
+      if (this.isGrounded && this.position.y > groundY + 0.05) {
+        // Сошёл с края дивана/стола — начинаем падать
+        this.isGrounded = false;
+        this.jumpVy = 0;
+      } else if (this.isGrounded) {
+        this.position.y = groundY;
+      }
       if (!this.isGrounded) {
         this.position.y += this.jumpVy * dt;
         this.jumpVy -= 22 * dt;
-        if (this.position.y <= 0) {
-          this.position.y = 0;
+        if (this.jumpVy <= 0 && this.position.y <= groundY) {
+          this.position.y = groundY;
           this.isGrounded = true;
           this.jumpVy = 0;
           if (this.isDroppingWeight) {

@@ -37,7 +37,7 @@
 
   <!-- Нотификация срабатывания датчика АльфаСтрахование -->
   <div id="shield-alert" class="hidden">
-    🛡 СТРАХОВКА СРАБОТАЛА: 0 ₽ УЩЕРБА!
+    <span class="alfa-dot"></span> СТРАХОВАЯ ЗАЩИТА: 0 ₽ УЩЕРБА
   </div>
 
   <!-- ==========================================================================
@@ -58,7 +58,7 @@
       <div class="scenarios-grid">
         <div class="scenario-select-card selected" data-scenario-id="1">
           <div class="sc-card-top">
-            <span class="sc-badge">🌊 СЦЕНАРИЙ 1</span>
+            <span class="sc-badge">СЦЕНАРИЙ 01</span>
             <span class="sc-reward">до 550 тыс. ₽</span>
           </div>
           <div class="sc-name">Венеция в хрущёвке</div>
@@ -67,7 +67,7 @@
 
         <div class="scenario-select-card" data-scenario-id="2">
           <div class="sc-card-top">
-            <span class="sc-badge">🔨 СЦЕНАРИЙ 2</span>
+            <span class="sc-badge">СЦЕНАРИЙ 02</span>
             <span class="sc-reward">до 750 тыс. ₽</span>
           </div>
           <div class="sc-name">Симфония несущей стены</div>
@@ -76,7 +76,7 @@
 
         <div class="scenario-select-card" data-scenario-id="3">
           <div class="sc-card-top">
-            <span class="sc-badge">⚡ СЦЕНАРИЙ 3</span>
+            <span class="sc-badge">СЦЕНАРИЙ 03</span>
             <span class="sc-reward">до 850 тыс. ₽</span>
           </div>
           <div class="sc-name">Кухонный резонанс</div>
@@ -85,7 +85,7 @@
 
         <div class="scenario-select-card" data-scenario-id="4">
           <div class="sc-card-top">
-            <span class="sc-badge">💥 СЦЕНАРИЙ 4</span>
+            <span class="sc-badge">СЦЕНАРИЙ 04</span>
             <span class="sc-reward">до 1.5 млн ₽</span>
           </div>
           <div class="sc-name">Тотальный капремонт</div>
@@ -96,22 +96,22 @@
       <div class="section-label" style="margin-top:12px;">2. ЭКИПИРОВКА ГЕННАДИЯ:</div>
       <div class="class-cards-grid">
         <div class="class-card selected" data-class="drill">
-          <div class="class-name">⚡ Перфораторщик</div>
+          <div class="class-name">Перфораторщик</div>
           <div class="class-perk">+50% к урону буром и гирей 24 кг</div>
         </div>
         <div class="class-card" data-class="aqua">
-          <div class="class-name">🌊 Аква-Террорист</div>
+          <div class="class-name">Аква-Диверсант</div>
           <div class="class-perk">x2 скорость затопления и комбо КЗ</div>
         </div>
         <div class="class-card" data-class="music">
-          <div class="class-name">📻 Ночной Меломан</div>
+          <div class="class-name">Ночной Меломан</div>
           <div class="class-perk">-40% кулдаун шансона и рывка</div>
         </div>
       </div>
 
       <div class="hero-actions">
-        <button id="btn-start-game" class="btn-primary">НАЧАТЬ ОПЕРАЦИЮ →</button>
-        <a href="#landing-page" class="btn-secondary">Калькулятор полиса ↓</a>
+        <button id="btn-start-game" class="btn-primary">НАЧАТЬ КАПРЕМОНТ</button>
+        <a href="#landing-page" class="btn-secondary">Калькулятор полиса</a>
       </div>
     </div>
   </div>
@@ -122,7 +122,7 @@
   <div id="briefing-modal" class="hidden">
     <div class="briefing-sheet">
       <div class="briefing-header">
-        <span id="briefing-badge" class="sc-badge">🌊 СЦЕНАРИЙ 1</span>
+        <span id="briefing-badge" class="sc-badge">СЦЕНАРИЙ 01</span>
         <h2 id="briefing-title">«Венеция в хрущёвке»</h2>
       </div>
 
@@ -146,7 +146,7 @@
         </div>
       </div>
 
-      <button id="btn-launch-scenario" class="btn-primary btn-launch">ПОГНАЛИ! (В БОЙ) →</button>
+      <button id="btn-launch-scenario" class="btn-primary btn-launch">НАЧАТЬ МИССИЮ</button>
     </div>
   </div>
 
@@ -189,15 +189,15 @@
 
     <!-- Правый верхний угол: Управление -->
     <div class="hud-top-right">
-      <button id="btn-mute" class="hud-btn" title="Звук">♪</button>
-      <button id="btn-early-finish" class="hud-btn text-btn">🧾 Выставить счёт</button>
+      <button id="btn-mute" class="hud-btn" title="Звук">ЗВУК</button>
+      <button id="btn-early-finish" class="hud-btn text-btn">Выставить счёт</button>
     </div>
 
     <!-- Левая панель: карточка активного сценария -->
     <div class="hud-left-panel">
       <div class="quest-card">
         <div class="quest-header">
-          <span id="scenario-badge" class="quest-tag">🌊 СЦЕНАРИЙ 1</span>
+          <span id="scenario-badge" class="quest-tag">СЦЕНАРИЙ 01</span>
           <span id="scenario-target" class="quest-reward">Цель: от 450 000 ₽</span>
         </div>
         <div id="scenario-title" class="quest-title">«Венеция в хрущёвке»</div>
@@ -295,7 +295,7 @@
       </div>
 
       <div id="policy-banner" class="policy-banner hidden">
-        🛡 <strong>Страховая выплата АльфаСтрахования покроет ремонт</strong>, бытовую технику и гражданскую ответственность перед соседями снизу. Стоимость спокойствия — всего от 350 ₽ в месяц!
+        <strong>Страховая выплата АльфаСтрахования покроет ремонт</strong>, бытовую технику и гражданскую ответственность перед соседями снизу. Стоимость спокойствия — всего от 350 ₽ в месяц!
       </div>
 
       <div id="promo-block" class="promo-block hidden">
@@ -304,7 +304,7 @@
       </div>
 
       <a href="https://www.alfastrah.ru/individuals/housing/flat/calculator/" target="_blank" rel="noopener noreferrer" class="btn-cta-alfa">
-        Рассчитать свой полис за 2 минуты →
+        Рассчитать полис на alfastrah.ru
       </a>
 
       <!-- Штрих-код кассового чека -->
@@ -411,7 +411,7 @@
               <div id="calc-price-monthly" class="calc-result-price">560 ₽ / мес</div>
             </div>
             <a href="https://www.alfastrah.ru/individuals/housing/flat/calculator/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding:14px 24px;font-size:14px;">
-              Оформить онлайн →
+              Оформить онлайн
             </a>
           </div>
         </div>
@@ -437,6 +437,7 @@
         const game = new window.GN.Game();
         const ui = new window.GN.UIManager(game);
         window.GN.UI = ui;
+        window.GN.game = game;
         console.log('ГЕНАСТРОФА 3D успешно запущена!');
       } catch (err) {
         console.error('Ошибка инициализации игры:', err);
